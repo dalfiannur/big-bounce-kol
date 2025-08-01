@@ -94,6 +94,36 @@ export const appRouter = router({
 		})
 	}),
 	
+	updateUser: procedure.input(z.object({
+		id: z.number(),
+		fullname: z.string(),
+		username: z.string(),
+		password: z.string().optional()
+	})).mutation(async ({input}) => {
+		const {id, password, ...rest} = input
+		
+		const data: Prisma.UserUpdateInput = rest
+		
+		if (password) {
+			data.password = hashSync(password, genSaltSync())
+		}
+		
+		return prisma.user.update({
+			where: {id},
+			data
+		})
+	}),
+	
+	deleteUser: procedure.input(z.object({
+		id: z.number()
+	})).mutation(async ({input}) => {
+		const {id} = input
+		
+		return prisma.user.delete({
+			where: {id}
+		})
+	}),
+	
 	getTotalFollowers: procedure.query(async ({}) => {
 		return prisma.follower.count()
 	}),

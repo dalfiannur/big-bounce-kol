@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react'
+import {useState} from 'react'
 import {MoreHorizontal, Plus, Search, Shield, User as UserIcon, UserCheck, UserX} from 'lucide-react'
 import {Badge} from '@/components/ui/badge'
 import {Button} from '@/components/ui/button'
@@ -35,7 +35,6 @@ import {
 	AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import {Pagination} from '@/components/pagination'
-import {Role, User} from '@/app/generated/prisma'
 import {NextPageWithLayout} from '@/pages/_app'
 import RootLayout from '@/components/layout'
 import {trpc} from '@/utils/trpc'
@@ -73,15 +72,10 @@ const formatDate = (dateString: string) => {
 	})
 }
 
-type UserData = User & {
-	role: Role
-}
-
 interface UserFormData {
 	fullname: string
 	username: string
 	password: string
-	roleId: number
 }
 
 
@@ -97,18 +91,17 @@ const Page: NextPageWithLayout = () => {
 		role: 'Member'
 	})
 	
-	const [editingUser, setEditingUser] = useState<UserData | null>(null)
+	const [editingUser, setEditingUser] = useState<typeof users[0] | null>(null)
 	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
 	const [formData, setFormData] = useState<UserFormData>({
 		fullname: '',
 		username: '',
-		password: '',
-		roleId: 1
+		password: ''
 	})
 	
 	const resetForm = () => {
-		setFormData({fullname: '', username: '', roleId: 1, password: ''})
+		setFormData({fullname: '', username: '', password: ''})
 		setEditingUser(null)
 	}
 	
@@ -119,37 +112,23 @@ const Page: NextPageWithLayout = () => {
 			setIsAddDialogOpen(false)
 		}
 	})
+	const {mutate: updateMutation} = trpc.updateUser.useMutation({
+		onSuccess: () => {
+			resetForm()
+			refetchGetUsers()
+			setIsEditDialogOpen(false)
+		}
+	})
+	const {mutate: deleteMutation} = trpc.deleteUser.useMutation()
+	
 	const [searchTerm, setSearchTerm] = useState('')
 	const [roleFilter, setRoleFilter] = useState('all')
-	const [statusFilter, setStatusFilter] = useState('all')
 	
 	
 	const [currentPage, setCurrentPage] = useState(1)
 	const [itemsPerPage, setItemsPerPage] = useState(10)
 	
-	// Current user (simulating logged-in admin)
-	// const currentUser = users.find((u) => u.role.name === 'Administrator')
-	
-	// const allFilteredUsers = users.filter((user) => {
-	// 	const matchesSearch =
-	// 		user.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-	// 		user.username.toLowerCase().includes(searchTerm.toLowerCase())
-	// 	const matchesRole = roleFilter === 'all' || user.role.name === roleFilter
-	// 	const matchesStatus = statusFilter === 'all' || user.createdAt === null
-	//
-	// 	return matchesSearch && matchesRole && matchesStatus
-	// })
-	
 	const totalPages = Math.ceil(totalUsers / itemsPerPage)
-	// const startIndex = (currentPage - 1) * itemsPerPage
-	// const filteredUsers = allFilteredUsers.slice(startIndex, startIndex + itemsPerPage)
-	
-	// const stats = {
-	// 	total: users.length,
-	// 	administrators: users.filter((u) => u.role.name === 'Administrator').length,
-	// 	members: users.filter((u) => u.role.name === 'Member').length,
-	// 	active: users.filter((u) => !!u.deletedAt).length
-	// }
 	
 	const handleAddUser = () => {
 		if (!formData.fullname || !formData.username || !formData.password) return
@@ -163,24 +142,18 @@ const Page: NextPageWithLayout = () => {
 	}
 	
 	const handleEditUser = () => {
-		if (!editingUser || !formData.fullname || !formData.username || !formData.password) return
+		if (!editingUser || !formData.fullname || !formData.username) return
 		
-		// TODO : Mutate
+		updateMutation({
+			...formData,
+			id: editingUser.id
+		})
 	}
-	
-	const handleDeleteUser = (userId: number) => {
-		// setUsers(users.filter((user) => user.id !== userId))
-	}
-	
+
 	const openEditDialog = (user: typeof users[0]) => {
-		// setEditingUser(user)
-		// setFormData({
-		// 	name: user.name,
-		// 	email: user.email,
-		// 	role: user.role,
-		// 	status: user.status,
-		// })
-		// setIsEditDialogOpen(true)
+		setEditingUser(user)
+		setFormData(user)
+		setIsEditDialogOpen(true)
 	}
 	
 	const handlePageChange = (page: number) => {
@@ -338,23 +311,6 @@ const Page: NextPageWithLayout = () => {
 								<SelectItem value="member">Member</SelectItem>
 							</SelectContent>
 						</Select>
-						
-						<Select
-							value={statusFilter}
-							onValueChange={(value) => {
-								setStatusFilter(value)
-								resetPagination()
-							}}
-						>
-							<SelectTrigger className="w-[140px]">
-								<SelectValue placeholder="Status"/>
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">All Status</SelectItem>
-								<SelectItem value="active">Active</SelectItem>
-								<SelectItem value="inactive">Inactive</SelectItem>
-							</SelectContent>
-						</Select>
 					</div>
 				</CardHeader>
 				
@@ -412,49 +368,53 @@ const Page: NextPageWithLayout = () => {
 										<TableCell
 											className="text-sm text-muted-foreground">{formatDate(user.createdAt.toString())}</TableCell>
 										<TableCell>
-											<DropdownMenu>
-												<DropdownMenuTrigger asChild>
-													<Button variant="ghost" size="icon">
-														<MoreHorizontal className="h-4 w-4"/>
-													</Button>
-												</DropdownMenuTrigger>
-												<DropdownMenuContent align="end">
-													<DropdownMenuItem onClick={() => openEditDialog(user)}>Edit
-														User</DropdownMenuItem>
-													<DropdownMenuItem>View Details</DropdownMenuItem>
-													<DropdownMenuSeparator/>
-													{user.role.name !== 'Administrator' && (
-														<AlertDialog>
-															<AlertDialogTrigger asChild>
-																<DropdownMenuItem onSelect={(e) => e.preventDefault()}
-																				  className="text-red-600">
-																	<UserX className="h-4 w-4 mr-2"/>
-																	Delete User
-																</DropdownMenuItem>
-															</AlertDialogTrigger>
-															<AlertDialogContent>
-																<AlertDialogHeader>
-																	<AlertDialogTitle>Delete User</AlertDialogTitle>
-																	<AlertDialogDescription>
-																		Are you sure you want to delete {user.fullname}?
-																		This action cannot be undone and will
-																		remove all associated data.
-																	</AlertDialogDescription>
-																</AlertDialogHeader>
-																<AlertDialogFooter>
-																	<AlertDialogCancel>Cancel</AlertDialogCancel>
-																	<AlertDialogAction
-																		onClick={() => handleDeleteUser(user.id)}
-																		className="bg-red-600 hover:bg-red-700"
-																	>
+											{user.role.name !== 'Administrator' && (
+												<DropdownMenu>
+													<DropdownMenuTrigger asChild>
+														<Button variant="ghost" size="icon">
+															<MoreHorizontal className="h-4 w-4"/>
+														</Button>
+													</DropdownMenuTrigger>
+													<DropdownMenuContent align="end">
+														<DropdownMenuItem onClick={() => openEditDialog(user)}>
+															Edit User
+														</DropdownMenuItem>
+														<DropdownMenuSeparator/>
+														{user.role.name !== 'Administrator' && (
+															<AlertDialog>
+																<AlertDialogTrigger asChild>
+																	<DropdownMenuItem
+																		onSelect={(e) => e.preventDefault()}
+																		className="text-red-600">
+																		<UserX className="h-4 w-4 mr-2"/>
 																		Delete User
-																	</AlertDialogAction>
-																</AlertDialogFooter>
-															</AlertDialogContent>
-														</AlertDialog>
-													)}
-												</DropdownMenuContent>
-											</DropdownMenu>
+																	</DropdownMenuItem>
+																</AlertDialogTrigger>
+																<AlertDialogContent>
+																	<AlertDialogHeader>
+																		<AlertDialogTitle>Delete User</AlertDialogTitle>
+																		<AlertDialogDescription>
+																			Are you sure you want to
+																			delete {user.fullname}?
+																			This action cannot be undone and will
+																			remove all associated data.
+																		</AlertDialogDescription>
+																	</AlertDialogHeader>
+																	<AlertDialogFooter>
+																		<AlertDialogCancel>Cancel</AlertDialogCancel>
+																		<AlertDialogAction
+																			onClick={() => deleteMutation({id: user.id})}
+																			className="bg-red-600 hover:bg-red-700"
+																		>
+																			Delete User
+																		</AlertDialogAction>
+																	</AlertDialogFooter>
+																</AlertDialogContent>
+															</AlertDialog>
+														)}
+													</DropdownMenuContent>
+												</DropdownMenu>
+											)}
 										</TableCell>
 									</TableRow>
 								))}
@@ -499,13 +459,22 @@ const Page: NextPageWithLayout = () => {
 							/>
 						</div>
 						<div className="grid gap-2">
-							<Label htmlFor="edit-email">Email Address</Label>
+							<Label htmlFor="edit-email">Username</Label>
 							<Input
 								id="edit-email"
-								type="email"
+								type="username"
 								value={formData.username}
 								onChange={(e) => setFormData({...formData, username: e.target.value})}
-								placeholder="Enter email address"
+								placeholder="Enter username"
+							/>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="edit-email">Password</Label>
+							<Input
+								id="edit-password"
+								type="password"
+								onChange={(e) => setFormData({...formData, password: e.target.value})}
+								placeholder="Enter new password"
 							/>
 						</div>
 					</div>
