@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import {MoreHorizontal, Plus, Search, Shield, User as UserIcon, UserCheck, UserX} from 'lucide-react'
 import {Badge} from '@/components/ui/badge'
 import {Button} from '@/components/ui/button'
@@ -39,6 +39,7 @@ import {Role, User} from '@/app/generated/prisma'
 import {NextPageWithLayout} from '@/pages/_app'
 import RootLayout from '@/components/layout'
 import {trpc} from '@/utils/trpc'
+import {useAuthorization} from '@/hooks/use-authorization'
 
 const getRoleColor = (role: string) => {
 	switch (role) {
@@ -85,6 +86,8 @@ interface UserFormData {
 
 
 const Page: NextPageWithLayout = () => {
+	useAuthorization(true)
+	
 	const {data: users = [], refetch: refetchGetUsers} = trpc.getUsers.useQuery({})
 	const {data: totalUsers = 0} = trpc.getTotalUsers.useQuery({})
 	const {data: totalAdministrators = 0} = trpc.getTotalUsers.useQuery({
