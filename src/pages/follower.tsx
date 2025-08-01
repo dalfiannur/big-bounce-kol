@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react'
+import {useState} from 'react'
 import {Calendar, Phone, Search, Shield, User, Users} from 'lucide-react'
 import {Badge} from '@/components/ui/badge'
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
@@ -10,7 +10,7 @@ import {NextPageWithLayout} from '@/pages/_app'
 import RootLayout from '@/components/layout'
 import {trpc} from '@/utils/trpc'
 import {useUser} from '@/hooks/use-user'
-import {useRouter} from 'next/navigation'
+import {useAuthorization} from '@/hooks/use-authorization'
 
 const formatDate = (dateString: string) => {
 	return new Date(dateString).toLocaleDateString('en-US', {
@@ -31,8 +31,9 @@ const formatDateTime = (dateString: string) => {
 }
 
 const Page: NextPageWithLayout = () => {
+	useAuthorization(true)
+	
 	const user = useUser()
-	const router = useRouter()
 	
 	const [page, setPage] = useState(1)
 	const [search, setSearchTerm] = useState('')
@@ -51,9 +52,6 @@ const Page: NextPageWithLayout = () => {
 		memberId
 	})
 	
-	
-	const [statusFilter, setStatusFilter] = useState('all')
-	
 	const [itemsPerPage, setItemsPerPage] = useState(10)
 	
 	const totalPages = Math.ceil(totalFollowers / itemsPerPage)
@@ -70,12 +68,6 @@ const Page: NextPageWithLayout = () => {
 	const resetPagination = () => {
 		setPage(1)
 	}
-	
-	useEffect(() => {
-		if (user && user.role.name !== 'Administrator') {
-			router.push('/login')
-		}
-	}, [router, user])
 	
 	if (user?.role.name !== 'Administrator') {
 		return (
@@ -234,11 +226,7 @@ const Page: NextPageWithLayout = () => {
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{followers.map((follower) => {
-									const isUpcoming = new Date(follower.arrivalDate) > new Date()
-									const isToday = new Date(follower.arrivalDate).toDateString() === new Date().toDateString()
-									
-									return (
+								{followers.map((follower) => (
 										<TableRow key={follower.id}>
 											<TableCell>
 												<div className="flex items-center gap-3">
@@ -284,7 +272,7 @@ const Page: NextPageWithLayout = () => {
 											</TableCell>
 										</TableRow>
 									)
-								})}
+								)}
 							</TableBody>
 						</Table>
 					</div>
