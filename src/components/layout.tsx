@@ -64,7 +64,7 @@ export default function RootLayout({children}: Readonly<{ children: ReactNode; }
 								<Link
 									href="/follower"
 									className={`text-sm font-medium transition-colors hover:text-primary ${
-										pathname === 'follower'
+										pathname === '/follower'
 											? 'text-foreground border-b-2 border-blue-600 pb-4'
 											: 'text-muted-foreground'
 									}`}
