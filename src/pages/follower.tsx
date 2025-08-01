@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import {Calendar, Phone, Search, Shield, User, Users} from 'lucide-react'
 import {Badge} from '@/components/ui/badge'
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
@@ -10,9 +10,9 @@ import {NextPageWithLayout} from '@/pages/_app'
 import RootLayout from '@/components/layout'
 import {trpc} from '@/utils/trpc'
 import {useUser} from '@/hooks/use-user'
+import {useRouter} from 'next/navigation'
 
 const formatDate = (dateString: string) => {
-	console.log(dateString)
 	return new Date(dateString).toLocaleDateString('en-US', {
 		month: 'short',
 		day: 'numeric',
@@ -32,9 +32,11 @@ const formatDateTime = (dateString: string) => {
 
 const Page: NextPageWithLayout = () => {
 	const user = useUser()
+	const router = useRouter()
 	
 	const [page, setPage] = useState(1)
 	const [search, setSearchTerm] = useState('')
+	const [memberId, setMemberId] = useState<number | undefined>(undefined)
 	
 	const {data: totalFollowers = 0} = trpc.getTotalFollowers.useQuery()
 	const {data: totalMembers = 0} = trpc.getTotalUsers.useQuery({
@@ -45,18 +47,16 @@ const Page: NextPageWithLayout = () => {
 	})
 	const {data: followers = []} = trpc.getFollowers.useQuery({
 		page,
-		search
+		search,
+		memberId
 	})
 	
 	
-	const [memberFilter, setMemberFilter] = useState('all')
 	const [statusFilter, setStatusFilter] = useState('all')
-	
 	
 	const [itemsPerPage, setItemsPerPage] = useState(10)
 	
 	const totalPages = Math.ceil(totalFollowers / itemsPerPage)
-	const startIndex = (page - 1) * itemsPerPage
 	
 	const handlePageChange = (page: number) => {
 		setPage(page)
@@ -70,6 +70,12 @@ const Page: NextPageWithLayout = () => {
 	const resetPagination = () => {
 		setPage(1)
 	}
+	
+	useEffect(() => {
+		if (user && user.role.name !== 'Administrator') {
+			router.push('/login')
+		}
+	}, [router, user])
 	
 	if (user?.role.name !== 'Administrator') {
 		return (
@@ -133,28 +139,6 @@ const Page: NextPageWithLayout = () => {
 						<p className="text-xs text-muted-foreground">Followers per member</p>
 					</CardContent>
 				</Card>
-				
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
-						<Calendar className="h-4 w-4 text-muted-foreground"/>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">{0}</div>
-						<p className="text-xs text-muted-foreground">Future join dates</p>
-					</CardContent>
-				</Card>
-				
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">{`Today's Events`}</CardTitle>
-						<div className="h-2 w-2 rounded-full bg-blue-500"/>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">{0}</div>
-						<p className="text-xs text-muted-foreground">Events happening today</p>
-					</CardContent>
-				</Card>
 			</div>
 			
 			<Card>
@@ -216,9 +200,9 @@ const Page: NextPageWithLayout = () => {
 						</div>
 						
 						<Select
-							value={memberFilter}
+							value={memberId?.toString()}
 							onValueChange={(value) => {
-								setMemberFilter(value)
+								setMemberId(+value)
 								resetPagination()
 							}}
 						>
@@ -234,24 +218,6 @@ const Page: NextPageWithLayout = () => {
 								))}
 							</SelectContent>
 						</Select>
-						
-						<Select
-							value={statusFilter}
-							onValueChange={(value) => {
-								setStatusFilter(value)
-								resetPagination()
-							}}
-						>
-							<SelectTrigger className="w-[140px]">
-								<SelectValue placeholder="Event Status"/>
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">All Events</SelectItem>
-								<SelectItem value="upcoming">Upcoming</SelectItem>
-								<SelectItem value="today">Today</SelectItem>
-								<SelectItem value="past">Past</SelectItem>
-							</SelectContent>
-						</Select>
 					</div>
 				</CardHeader>
 				
@@ -261,11 +227,10 @@ const Page: NextPageWithLayout = () => {
 							<TableHeader>
 								<TableRow>
 									<TableHead>Follower</TableHead>
-									<TableHead>Member</TableHead>
+									<TableHead>KOL</TableHead>
 									<TableHead>Phone Number</TableHead>
 									<TableHead>Event Join Date</TableHead>
 									<TableHead>Added On</TableHead>
-									<TableHead>Status</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
@@ -316,20 +281,6 @@ const Page: NextPageWithLayout = () => {
 											</TableCell>
 											<TableCell className="text-sm text-muted-foreground">
 												{formatDateTime(follower.createdAt)}
-											</TableCell>
-											<TableCell>
-												<Badge
-													variant="secondary"
-													className={
-														isToday
-															? 'bg-blue-100 text-blue-800 hover:bg-blue-100'
-															: isUpcoming
-																? 'bg-green-100 text-green-800 hover:bg-green-100'
-																: 'bg-gray-100 text-gray-800 hover:bg-gray-100'
-													}
-												>
-													{isToday ? 'Today' : isUpcoming ? 'Upcoming' : 'Past'}
-												</Badge>
 											</TableCell>
 										</TableRow>
 									)
