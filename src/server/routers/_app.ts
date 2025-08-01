@@ -53,23 +53,32 @@ export const appRouter = router({
 			where
 		})
 	}),
-	getUsers: procedure.input(z.object({
-		role: z.string().optional()
-	})).query(async ({input}) => {
-		const where: Prisma.UserWhereInput = {}
-		if (input.role) {
-			where.role = {
-				name: input.role
+	
+	getUsers: procedure
+		.input(z.object({
+			role: z.string().optional(),
+			orderBy: z.enum(['id', 'fullname', 'username', 'roleId', 'createdAt']).optional().default('createdAt'),
+			orderSort: z.enum(['asc', 'desc']).optional().default('desc')
+		}))
+		.query(async ({input}) => {
+			const where: Prisma.UserWhereInput = {}
+			if (input.role) {
+				where.role = {
+					name: input.role
+				}
 			}
-		}
-		return prisma.user.findMany({
-			where,
-			include: {
-				role: true,
-				followers: true
-			}
-		})
-	}),
+			return prisma.user.findMany({
+				where,
+				orderBy: {
+					[input.orderBy]: input.orderSort
+				},
+				include: {
+					role: true,
+					followers: true
+				}
+			})
+		}),
+	
 	createUser: procedure.input(z.object({
 		fullname: z.string(),
 		username: z.string(),
@@ -84,12 +93,15 @@ export const appRouter = router({
 			}
 		})
 	}),
+	
 	getTotalFollowers: procedure.query(async ({}) => {
 		return prisma.follower.count()
 	}),
+	
 	getFollowers: procedure.input(z.object({
 		page: z.number().optional().default(1),
-		search: z.string().optional()
+		search: z.string().optional(),
+		memberId: z.number().optional().nullish()
 	})).query(async ({input}) => {
 		const where: Prisma.FollowerWhereInput = {}
 		
@@ -110,6 +122,10 @@ export const appRouter = router({
 			]
 		}
 		
+		if (input.memberId) {
+			where.memberId = input.memberId
+		}
+		
 		const offset = input.page - 1
 		const take = 10
 		return prisma.follower.findMany({
@@ -121,6 +137,7 @@ export const appRouter = router({
 			}
 		})
 	}),
+	
 	createFollower: procedure.input(z.object({
 		fullname: z.string(),
 		phoneNumber: z.string(),
@@ -134,6 +151,7 @@ export const appRouter = router({
 			}
 		})
 	}),
+	
 	updateFollower: procedure.input(z.object({
 		id: z.number(),
 		fullname: z.string(),
@@ -152,6 +170,7 @@ export const appRouter = router({
 			}
 		})
 	}),
+	
 	deleteFollower: procedure.input(z.object({
 		id: z.number()
 	})).mutation(async ({input}) => {
