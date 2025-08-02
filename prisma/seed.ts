@@ -1,4 +1,4 @@
-import {Prisma, PrismaClient} from '../generated/prisma'
+import {Prisma, PrismaClient} from '../src/generated/prisma'
 import {genSaltSync, hashSync} from 'bcrypt'
 
 const prisma = new PrismaClient()
