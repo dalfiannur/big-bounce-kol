@@ -19,6 +19,7 @@ export const appRouter = router({
 				role: true
 			}
 		})
+		
 		if (!user) {
 			throw new TRPCError({
 				code: 'UNAUTHORIZED',

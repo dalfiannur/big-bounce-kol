@@ -20,6 +20,8 @@ export const trpc = createTRPCNext<AppRouter>({
 					url: `${getBaseUrl()}/api/trpc`,
 					async headers() {
 						const token = window.localStorage.getItem('access_token')
+						
+						if (!token) return {}
 						return {
 							authorization: `Bearer ${token}`
 						}
