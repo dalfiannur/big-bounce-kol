@@ -150,7 +150,10 @@ export const appRouter = router({
 		const {id} = input
 		
 		return prisma.user.delete({
-			where: {id}
+			where: {id},
+			include: {
+				followers: true
+			}
 		})
 	}),
 	

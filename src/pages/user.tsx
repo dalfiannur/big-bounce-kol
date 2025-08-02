@@ -119,7 +119,11 @@ const Page: NextPageWithLayout = () => {
 			setIsEditDialogOpen(false)
 		}
 	})
-	const {mutate: deleteMutation} = trpc.deleteUser.useMutation()
+	const {mutate: deleteMutation} = trpc.deleteUser.useMutation({
+		onSuccess: () => {
+			refetchGetUsers()
+		}
+	})
 	
 	const [searchTerm, setSearchTerm] = useState('')
 	const [roleFilter, setRoleFilter] = useState('all')
