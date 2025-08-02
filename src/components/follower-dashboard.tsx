@@ -68,7 +68,9 @@ export const FollowerDashboard = () => {
 		page,
 		search
 	})
-	const {data: totalFollowers = 0, refetch: refetchTotalFollowers} = trpc.getTotalFollowers.useQuery()
+	const {data: totalFollowers = 0, refetch: refetchTotalFollowers} = trpc.getTotalFollowers.useQuery({
+	
+	})
 	
 	const refetch = () => {
 		refetchFollowers()

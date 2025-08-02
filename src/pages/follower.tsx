@@ -49,7 +49,8 @@ const Page: NextPageWithLayout = () => {
 	const {data: followers = []} = trpc.getFollowers.useQuery({
 		page,
 		search,
-		memberId
+		memberId,
+		hasMember: true
 	})
 	
 	const [itemsPerPage, setItemsPerPage] = useState(10)
@@ -247,12 +248,12 @@ const Page: NextPageWithLayout = () => {
 												<div className="flex items-center gap-2">
 													<div
 														className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-medium">
-														{follower.member.fullname
+														{follower.member?.fullname
 															.split(' ')
 															.map((n) => n[0])
 															.join('')}
 													</div>
-													<span className="text-sm">{follower.member.fullname}</span>
+													<span className="text-sm">{follower.member?.fullname}</span>
 												</div>
 											</TableCell>
 											<TableCell>

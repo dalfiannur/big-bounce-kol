@@ -5,7 +5,6 @@ import Link from 'next/link'
 import {Button} from '@/components/ui/button'
 import {ReactNode} from 'react'
 import {usePathname, useRouter} from 'next/navigation'
-import {useAuthorization} from '@/hooks/use-authorization'
 import {useUser} from '@/hooks/use-user'
 
 const geistSans = Geist({
@@ -19,8 +18,6 @@ const geistMono = Geist_Mono({
 })
 
 export default function RootLayout({children}: Readonly<{ children: ReactNode; }>) {
-	useAuthorization()
-	
 	const pathname = usePathname()
 	const user = useUser()
 	const router = useRouter()
@@ -43,9 +40,9 @@ export default function RootLayout({children}: Readonly<{ children: ReactNode; }
 					</div>
 					<nav className="ml-8 flex items-center gap-6">
 						<Link
-							href="/"
+							href="/dashboard"
 							className={`text-sm font-medium transition-colors hover:text-primary ${
-								pathname === '/' ? 'text-foreground border-b-2 border-blue-600 pb-4' : 'text-muted-foreground'
+								pathname === '/dashboard' ? 'text-foreground border-b-2 border-blue-600 pb-4' : 'text-muted-foreground'
 							}`}
 						>
 							Dashboard
