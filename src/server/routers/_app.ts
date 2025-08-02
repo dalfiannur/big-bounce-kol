@@ -1,7 +1,7 @@
 import {procedure, router} from '../trpc'
 import prisma from '@/lib/prisma'
 import {z} from 'zod'
-import {Prisma} from '@/app/generated/prisma'
+import {Prisma} from '@/generated/prisma'
 import {compareSync, genSaltSync, hashSync} from 'bcrypt'
 import {TRPCError} from '@trpc/server'
 import {sign} from 'jsonwebtoken'
