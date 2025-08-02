@@ -39,7 +39,9 @@ const Page: NextPageWithLayout = () => {
 	const [search, setSearchTerm] = useState('')
 	const [memberId, setMemberId] = useState<number | undefined>(undefined)
 	
-	const {data: totalFollowers = 0} = trpc.getTotalFollowers.useQuery()
+	const {data: totalFollowers = 0} = trpc.getTotalFollowers.useQuery({
+		hasMember: false
+	})
 	const {data: totalMembers = 0} = trpc.getTotalUsers.useQuery({
 		role: 'Member'
 	})

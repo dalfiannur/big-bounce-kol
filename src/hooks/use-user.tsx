@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react'
-import {Role, User} from '@/app/generated/prisma'
+import {Role, User} from '@/generated/prisma'
 
 export const useUser = () => {
 	const [user, setUser] = useState<User & { role: Role } | null>(null)
