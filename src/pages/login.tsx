@@ -9,7 +9,6 @@ import {Checkbox} from '@/components/ui/checkbox'
 import {Alert, AlertDescription} from '@/components/ui/alert'
 import {useRouter} from 'next/navigation'
 import {trpc} from '@/utils/trpc'
-import '../globals.css'
 
 const Page = () => {
 	const [username, setUsername] = useState('')

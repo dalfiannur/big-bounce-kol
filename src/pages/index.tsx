@@ -11,7 +11,6 @@ import {NextPageWithLayout} from '@/pages/_app'
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover'
 import {format} from 'date-fns'
 import {Calendar} from '@/components/ui/calendar'
-import '../globals.css'
 
 const Page: NextPageWithLayout = () => {
 	const [formData, setFormData] = useState({

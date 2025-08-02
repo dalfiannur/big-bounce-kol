@@ -1,4 +1,3 @@
-import '../globals.css'
 import {Geist, Geist_Mono} from 'next/font/google'
 import {LogOutIcon, Ticket} from 'lucide-react'
 import Link from 'next/link'
