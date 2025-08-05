@@ -13,14 +13,14 @@ function getBaseUrl() {
 }
 
 export const trpc = createTRPCNext<AppRouter>({
-	config(opts) {
+	config() {
 		return {
 			links: [
 				httpBatchLink({
 					url: `${getBaseUrl()}/api/trpc`,
 					async headers() {
+						if (window.location.pathname === '/') return {}
 						const token = window.localStorage.getItem('access_token')
-						
 						if (!token) return {}
 						return {
 							authorization: `Bearer ${token}`
