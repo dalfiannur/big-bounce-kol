@@ -83,13 +83,19 @@ const Page: NextPageWithLayout = () => {
 	useAuthorization(true)
 	
 	const {data: users = [], refetch: refetchGetUsers} = trpc.getUsers.useQuery({})
-	const {data: totalUsers = 0} = trpc.getTotalUsers.useQuery({})
+	const {data: totalUsers = 0, refetch: refetchTotalUsers} = trpc.getTotalUsers.useQuery({})
 	const {data: totalAdministrators = 0} = trpc.getTotalUsers.useQuery({
 		role: 'Administrator'
 	})
-	const {data: totalMembers = 0} = trpc.getTotalUsers.useQuery({
+	const {data: totalMembers = 0, refetch: refetchTotalMembers} = trpc.getTotalUsers.useQuery({
 		role: 'Member'
 	})
+	
+	const refetch = () => {
+		refetchGetUsers()
+		refetchTotalUsers()
+		refetchTotalMembers()
+	}
 	
 	const [editingUser, setEditingUser] = useState<typeof users[0] | null>(null)
 	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -107,13 +113,14 @@ const Page: NextPageWithLayout = () => {
 	
 	const {mutate: createMutation} = trpc.createUser.useMutation({
 		onSuccess: () => {
+			refetch()
 			resetForm()
-			refetchGetUsers()
 			setIsAddDialogOpen(false)
 		}
 	})
 	const {mutate: updateMutation} = trpc.updateUser.useMutation({
 		onSuccess: () => {
+			refetch()
 			resetForm()
 			refetchGetUsers()
 			setIsEditDialogOpen(false)
@@ -121,7 +128,7 @@ const Page: NextPageWithLayout = () => {
 	})
 	const {mutate: deleteMutation} = trpc.deleteUser.useMutation({
 		onSuccess: () => {
-			refetchGetUsers()
+			refetch()
 		}
 	})
 	
@@ -153,7 +160,7 @@ const Page: NextPageWithLayout = () => {
 			id: editingUser.id
 		})
 	}
-
+	
 	const openEditDialog = (user: typeof users[0]) => {
 		setEditingUser(user)
 		setFormData(user)
