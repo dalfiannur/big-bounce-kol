@@ -62,6 +62,7 @@ export const appRouter = router({
 			page: z.number().optional().default(1),
 			perPage: z.number().optional().default(19),
 			role: z.string().optional(),
+			random: z.boolean().optional().default(false),
 			orderBy: z.enum(['id', 'fullname', 'username', 'roleId', 'createdAt']).optional().default('createdAt'),
 			orderSort: z.enum(['asc', 'desc']).optional().default('desc')
 		}))
@@ -100,6 +101,23 @@ export const appRouter = router({
 						}
 					}
 				]
+			}
+			
+			if (input.random) {
+				return prisma.user.findMany({
+					where,
+					take: input.perPage,
+					orderBy: {
+						id: 'asc'
+					},
+					cursor: {
+						id: Math.floor(Math.random() * await prisma.user.count())
+					},
+					include: {
+						role: true,
+						followers: true
+					}
+				})
 			}
 			
 			return prisma.user.findMany({

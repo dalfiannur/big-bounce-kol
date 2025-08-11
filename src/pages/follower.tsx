@@ -46,7 +46,10 @@ const Page: NextPageWithLayout = () => {
 		role: 'Member'
 	})
 	const {data: members = []} = trpc.getUsers.useQuery({
-		role: 'Member'
+		role: 'Member',
+		page: 1,
+		perPage: 3,
+		random: true
 	})
 	const {data: followers = []} = trpc.getFollowers.useQuery({
 		page,
