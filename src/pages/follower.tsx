@@ -38,9 +38,10 @@ const Page: NextPageWithLayout = () => {
 	const [page, setPage] = useState(1)
 	const [search, setSearchTerm] = useState('')
 	const [memberId, setMemberId] = useState<number | undefined>(undefined)
+	const [itemsPerPage, setItemsPerPage] = useState(10)
 	
 	const {data: totalFollowers = 0} = trpc.getTotalFollowers.useQuery({
-		hasMember: false
+		hasMember: false,
 	})
 	const {data: totalMembers = 0} = trpc.getTotalUsers.useQuery({
 		role: 'Member'
@@ -53,12 +54,11 @@ const Page: NextPageWithLayout = () => {
 	})
 	const {data: followers = []} = trpc.getFollowers.useQuery({
 		page,
+		perPage: itemsPerPage,
 		search,
 		memberId,
 		hasMember: true
 	})
-	
-	const [itemsPerPage, setItemsPerPage] = useState(10)
 	
 	const totalPages = Math.ceil(totalFollowers / itemsPerPage)
 	

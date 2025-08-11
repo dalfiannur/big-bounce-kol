@@ -224,6 +224,7 @@ export const appRouter = router({
 	getFollowers: procedure
 		.input(z.object({
 			page: z.number().optional().default(1),
+			perPage: z.number().optional().default(10),
 			search: z.string().optional(),
 			memberId: z.number().optional().nullish(),
 			hasMember: z.boolean().optional().default(false)
@@ -270,7 +271,7 @@ export const appRouter = router({
 			}
 			
 			const offset = input.page - 1
-			const take = 10
+			const take = input.perPage
 			return prisma.follower.findMany({
 				skip: offset * take,
 				take,
