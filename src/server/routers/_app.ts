@@ -58,6 +58,9 @@ export const appRouter = router({
 	
 	getUsers: procedure
 		.input(z.object({
+			search: z.string().optional(),
+			page: z.number().optional().default(1),
+			perPage: z.number().optional().default(19),
 			role: z.string().optional(),
 			orderBy: z.enum(['id', 'fullname', 'username', 'roleId', 'createdAt']).optional().default('createdAt'),
 			orderSort: z.enum(['asc', 'desc']).optional().default('desc')
@@ -71,13 +74,38 @@ export const appRouter = router({
 			}
 			
 			const where: Prisma.UserWhereInput = {}
-			if (input.role) {
-				where.role = {
-					name: input.role
-				}
+			
+			if (input.search) {
+				where.OR = [
+					{
+						fullname: {
+							contains: `%${input.search}%`,
+							mode: 'insensitive'
+						}
+					},
+					{
+						username: {
+							contains: `%${input.search}%`,
+							mode: 'insensitive'
+						}
+					}
+				]
 			}
+			
+			if (input.role && input.role !== 'All') {
+				where.AND = [
+					{
+						role: {
+							name: input.role
+						}
+					}
+				]
+			}
+			
 			return prisma.user.findMany({
 				where,
+				take: input.perPage,
+				skip: (input.page - 1) * input.perPage,
 				orderBy: {
 					[input.orderBy]: input.orderSort
 				},

@@ -39,6 +39,7 @@ import {NextPageWithLayout} from '@/pages/_app'
 import RootLayout from '@/components/layout'
 import {trpc} from '@/utils/trpc'
 import {useAuthorization} from '@/hooks/use-authorization'
+import {useDebouncedState} from '@tanstack/react-pacer'
 
 const getRoleColor = (role: string) => {
 	switch (role) {
@@ -82,7 +83,19 @@ interface UserFormData {
 const Page: NextPageWithLayout = () => {
 	useAuthorization(true)
 	
-	const {data: users = [], refetch: refetchGetUsers} = trpc.getUsers.useQuery({})
+	const [searchTerm, setSearchTerm] = useDebouncedState('', {
+		wait: 1000
+	})
+	const [currentPage, setCurrentPage] = useState(1)
+	const [itemsPerPage, setItemsPerPage] = useState(10)
+	const [roleFilter, setRoleFilter] = useState('All')
+	
+	const {data: users = [], refetch: refetchGetUsers} = trpc.getUsers.useQuery({
+		page: currentPage,
+		perPage: itemsPerPage,
+		search: searchTerm,
+		role: roleFilter
+	})
 	const {data: totalUsers = 0, refetch: refetchTotalUsers} = trpc.getTotalUsers.useQuery({})
 	const {data: totalAdministrators = 0} = trpc.getTotalUsers.useQuery({
 		role: 'Administrator'
@@ -132,13 +145,6 @@ const Page: NextPageWithLayout = () => {
 		}
 	})
 	
-	const [searchTerm, setSearchTerm] = useState('')
-	const [roleFilter, setRoleFilter] = useState('all')
-	
-	
-	const [currentPage, setCurrentPage] = useState(1)
-	const [itemsPerPage, setItemsPerPage] = useState(10)
-	
 	const totalPages = Math.ceil(totalUsers / itemsPerPage)
 	
 	const handleAddUser = () => {
@@ -183,7 +189,7 @@ const Page: NextPageWithLayout = () => {
 	return (
 		<div className="p-6 space-y-6">
 			{/* Stats Cards */}
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -208,23 +214,12 @@ const Page: NextPageWithLayout = () => {
 				
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Members</CardTitle>
+						<CardTitle className="text-sm font-medium">K.O.L Members</CardTitle>
 						<UserCheck className="h-4 w-4 text-muted-foreground"/>
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">{totalMembers}</div>
 						<p className="text-xs text-muted-foreground">Regular members</p>
-					</CardContent>
-				</Card>
-				
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Active Users</CardTitle>
-						<UserCheck className="h-4 w-4 text-muted-foreground"/>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">{totalUsers}</div>
-						<p className="text-xs text-muted-foreground">Currently active</p>
 					</CardContent>
 				</Card>
 			</div>
@@ -297,7 +292,6 @@ const Page: NextPageWithLayout = () => {
 								className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
 							<Input
 								placeholder="Search users..."
-								value={searchTerm}
 								onChange={(e) => {
 									setSearchTerm(e.target.value)
 									resetPagination()
@@ -317,9 +311,9 @@ const Page: NextPageWithLayout = () => {
 								<SelectValue placeholder="Role"/>
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="all">All Roles</SelectItem>
-								<SelectItem value="administrator">Administrator</SelectItem>
-								<SelectItem value="member">Member</SelectItem>
+								<SelectItem value="All">All Roles</SelectItem>
+								<SelectItem value="Administrator">Administrator</SelectItem>
+								<SelectItem value="Member">Member</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>
