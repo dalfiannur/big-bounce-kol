@@ -203,23 +203,37 @@ export const appRouter = router({
 		})
 	}),
 	
-	getTotalFollowers: procedure.input(z.object({
-		hasMember: z.boolean().optional().default(false)
-	})).query(async ({input}) => {
-		const where: Prisma.FollowerWhereInput = {
-			memberId: null
-		}
-		
-		if (input.hasMember) {
-			where.memberId = {
-				not: null
+	getTotalFollowers: procedure
+		.input(z.object({
+			hasMember: z.boolean().optional().default(false),
+			memberId: z.number().optional()
+		}))
+		.query(async ({input, ctx}) => {
+			if (!ctx.user) {
+				throw new TRPCError({
+					message: 'Not Allowed',
+					code: 'UNAUTHORIZED'
+				})
 			}
-		}
-		
-		return prisma.follower.count({
-			where
-		})
-	}),
+			
+			const where: Prisma.FollowerWhereInput = {
+				memberId: null
+			}
+			
+			if (input.memberId) {
+				where.memberId = input.memberId
+			} else if (input.hasMember) {
+				where.memberId = {
+					not: null
+				}
+			} else if (ctx.user.role !== 'Administrator') {
+				where.memberId = ctx.user.id
+			}
+			
+			return prisma.follower.count({
+				where
+			})
+		}),
 	
 	getFollowers: procedure
 		.input(z.object({
@@ -287,6 +301,19 @@ export const appRouter = router({
 		phoneNumber: z.string(),
 		arrivalDate: z.string()
 	})).mutation(async ({input, ctx}) => {
+		const existingFollower = await prisma.follower.findFirst({
+			where: {
+				phoneNumber: input.phoneNumber
+			}
+		})
+		
+		if (existingFollower) {
+			throw new TRPCError({
+				message: 'Phone Number Already Exists',
+				code: 'CONFLICT'
+			})
+		}
+		
 		if (!ctx.user) {
 			return prisma.follower.create({
 				data: {

@@ -53,6 +53,8 @@ interface FollowerFormData {
 export const FollowerDashboard = () => {
 	const user = useUser()
 	
+	const [errorMessage, setErrorMessage] = useState<string | null>(null)
+	const [isLoading, setIsLoading] = useState(false)
 	const [page] = useState(1)
 	const [search, setSearch] = useState('')
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -68,9 +70,7 @@ export const FollowerDashboard = () => {
 		page,
 		search
 	})
-	const {data: totalFollowers = 0, refetch: refetchTotalFollowers} = trpc.getTotalFollowers.useQuery({
-	
-	})
+	const {data: totalFollowers = 0, refetch: refetchTotalFollowers} = trpc.getTotalFollowers.useQuery({})
 	
 	const refetch = () => {
 		refetchFollowers()
@@ -78,10 +78,19 @@ export const FollowerDashboard = () => {
 	}
 	
 	const {mutate: createMutation} = trpc.createFollower.useMutation({
+		onMutate() {
+			setIsLoading(true)
+			setErrorMessage(null)
+		},
 		onSuccess: () => {
 			refetch()
 			setFormData({fullname: '', phoneNumber: '', arrivalDate: ''})
 			setIsAddDialogOpen(false)
+			setIsLoading(false)
+		},
+		onError: (error) => {
+			setErrorMessage(error.message)
+			setIsLoading(false)
 		}
 	})
 	const {mutate: updateMutation} = trpc.updateFollower.useMutation({
@@ -261,7 +270,11 @@ export const FollowerDashboard = () => {
 									<Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
 										Cancel
 									</Button>
-									<Button onClick={handleAddFollower}>Add Follower</Button>
+									<Button disabled={isLoading}
+											onClick={handleAddFollower}
+									>
+										Add Follower
+									</Button>
 								</DialogFooter>
 							</DialogContent>
 						</Dialog>
@@ -452,6 +465,18 @@ export const FollowerDashboard = () => {
 							Cancel
 						</Button>
 						<Button onClick={handleEditFollower}>Save Changes</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+			
+			<Dialog open={!!errorMessage}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Error</DialogTitle>
+					</DialogHeader>
+					<p>{errorMessage}</p>
+					<DialogFooter>
+						<Button onClick={() => setErrorMessage(null)}>Ok</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>

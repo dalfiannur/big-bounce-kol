@@ -41,8 +41,9 @@ const Page: NextPageWithLayout = () => {
 	const [itemsPerPage, setItemsPerPage] = useState(10)
 	
 	const {data: totalFollowers = 0} = trpc.getTotalFollowers.useQuery({
-		hasMember: false,
+		hasMember: true,
 	})
+	console.log(totalFollowers)
 	const {data: totalMembers = 0} = trpc.getTotalUsers.useQuery({
 		role: 'Member'
 	})
@@ -228,6 +229,7 @@ const Page: NextPageWithLayout = () => {
 														className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-sm font-medium">
 														{follower.fullname
 															.split(' ')
+															.slice(0, 2)
 															.map((n) => n[0])
 															.join('')
 															.toUpperCase()}
