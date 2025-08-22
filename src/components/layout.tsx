@@ -32,23 +32,22 @@ export default function RootLayout({children}: Readonly<{ children: ReactNode; }
 	return (
 		<div className={`min-h-screen bg-gray-50/50 ${geistSans.variable} ${geistMono.variable} antialiased`}>
 			<header className="border-b bg-white">
-				<div className="flex h-16 items-center px-6">
+				<div className="flex h-auto md:h-16 items-center px-6 py-2">
 					<div className="flex items-center gap-2">
 						<Ticket className="h-6 w-6 text-blue-600"/>
-						<h1 className="text-xl font-semibold">Support Dashboard</h1>
+						<h1 className="text-md md:text-xl font-semibold">Support Dashboard</h1>
 					</div>
 					<nav className="ml-8 flex items-center gap-6">
-						<Link
-							href="/dashboard"
-							className={`text-sm font-medium transition-colors hover:text-primary ${
-								pathname === '/dashboard' ? 'text-foreground border-b-2 border-blue-600 pb-4' : 'text-muted-foreground'
-							}`}
-						>
-							Dashboard
-						</Link>
-						
 						{isAdmin && (
 							<>
+								<Link
+									href="/dashboard"
+									className={`text-sm font-medium transition-colors hover:text-primary ${
+										pathname === '/dashboard' ? 'text-foreground border-b-2 border-blue-600 pb-4' : 'text-muted-foreground'
+									}`}
+								>
+									Dashboard
+								</Link>
 								<Link
 									href="/user"
 									className={`text-sm font-medium transition-colors hover:text-primary ${

@@ -9,8 +9,10 @@ import {Checkbox} from '@/components/ui/checkbox'
 import {Alert, AlertDescription} from '@/components/ui/alert'
 import {useRouter} from 'next/navigation'
 import {trpc} from '@/utils/trpc'
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog'
 
 const Page = () => {
+	const [errorMessage, setErrorMessage] = useState<string | null>(null)
 	const [username, setUsername] = useState('')
 	const [password, setPassword] = useState('')
 	const [showPassword, setShowPassword] = useState(false)
@@ -25,6 +27,9 @@ const Page = () => {
 			localStorage.setItem('user', JSON.stringify(data.user))
 			setIsLoading(false)
 			router.push('/dashboard')
+		},
+		onError(error) {
+			setErrorMessage(error.message)
 		}
 	})
 	
@@ -139,6 +144,18 @@ const Page = () => {
 					<p className="mt-2">© 2024 Support Dashboard. All rights reserved.</p>
 				</div>
 			</div>
+			
+			<Dialog open={!!errorMessage}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Error</DialogTitle>
+					</DialogHeader>
+					<p>{errorMessage}</p>
+					<DialogFooter>
+						<Button onClick={() => setErrorMessage(null)}>OK</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	)
 }

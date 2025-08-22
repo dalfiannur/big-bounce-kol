@@ -214,14 +214,14 @@ export const FollowerDashboard = () => {
 			
 			<Card>
 				<CardHeader>
-					<div className="flex items-center justify-between">
+					<div className="flex flex-col md:flex-row items-center justify-between">
 						<div>
 							<CardTitle>My Followers</CardTitle>
 							<CardDescription>Manage your event followers (Maximum 10 allowed)</CardDescription>
 						</div>
 						<Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
 							<DialogTrigger asChild>
-								<Button onClick={resetForm} disabled={followers.length === 10}>
+								<Button onClick={resetForm} disabled={followers.length === 10} className="w-full md:w-auto">
 									<Plus className="h-4 w-4 mr-2"/>
 									Add Follower {followers.length === 10 && '(Limit Reached)'}
 								</Button>
