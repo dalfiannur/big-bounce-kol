@@ -43,7 +43,6 @@ const Page: NextPageWithLayout = () => {
 	const {data: totalFollowers = 0} = trpc.getTotalFollowers.useQuery({
 		hasMember: true,
 	})
-	console.log(totalFollowers)
 	const {data: totalMembers = 0} = trpc.getTotalUsers.useQuery({
 		role: 'Member'
 	})
