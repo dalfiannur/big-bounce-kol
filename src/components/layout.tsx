@@ -66,6 +66,12 @@ export default function RootLayout({children}: Readonly<{ children: ReactNode; }
 								>
 									Monitor Followers
 								</Link>
+								<a
+									href="/api/export"
+									className="text-sm font-medium transition-colors hover:text-primary text-muted-foreground"
+								>
+									Export Data
+								</a>
 							</>
 						)}
 					</nav>

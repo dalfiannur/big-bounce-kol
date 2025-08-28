@@ -375,7 +375,7 @@ export const appRouter = router({
 				memberId: ctx.user.id
 			}
 		})
-	})
+	}),
 })
 
 export type AppRouter = typeof appRouter;
